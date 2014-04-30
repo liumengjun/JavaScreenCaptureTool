@@ -55,7 +55,7 @@ public class JavaScreenCaptureTool extends Frame implements MouseListener, Mouse
 
 	private static final long serialVersionUID = 1L;
 	private static final String title = "Java Screen Capture Tool";
-	private int frameWidth, frameHeight;
+	private int frameX, frameY, frameWidth, frameHeight;
 	private int firstPointx, firstPointy;
 
 	private BufferedImage bi;
@@ -96,19 +96,29 @@ public class JavaScreenCaptureTool extends Frame implements MouseListener, Mouse
 
 	private JavaScreenCaptureTool() {
 		// 取得屏幕大小
-		GraphicsDevice[] gs = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice[] gs = ge.getScreenDevices();
 		if (gs.length == 1) {
 			Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
 			frameWidth = dimension.width;
 			frameHeight = dimension.height;
-		} else {
+		} else {// 多屏幕的情况
+			// 主显示屏大小
+			Rectangle defRect = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
+			frameWidth = defRect.width;
+			frameHeight = defRect.height;
 			for (int i = 0; i < gs.length; i++) {
 				GraphicsConfiguration gc = gs[i].getDefaultConfiguration();
 				Rectangle bounds = gc.getBounds();
-				int w = (int) bounds.getWidth();
-				int h = (int) bounds.getHeight();
-				frameWidth += w;
-				frameHeight = (frameHeight >= h) ? frameHeight : h;
+				frameX = (bounds.x < frameX) ? bounds.x : frameX;
+				frameY = (bounds.y < frameY) ? bounds.y : frameY;
+				// 主显示屏的bounds.x和bounds.y都为0
+				if (bounds.x != 0) {
+					frameWidth += bounds.width;
+				}
+				if (bounds.y != 0) {
+					frameHeight += bounds.height;
+				}
 			}
 			if (frameWidth <= 0 || frameHeight <= 0) {
 				Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
@@ -116,7 +126,7 @@ public class JavaScreenCaptureTool extends Frame implements MouseListener, Mouse
 				frameHeight = dimension.height;
 			}
 		}
-		rectangle = new Rectangle(frameWidth, frameHeight);
+		rectangle = new Rectangle(frameX, frameY, frameWidth, frameHeight);
 
 		// 菜单
 		popup_ = new JPopupMenu();
@@ -236,6 +246,7 @@ public class JavaScreenCaptureTool extends Frame implements MouseListener, Mouse
 		// 截取全屏
 		bi = robot.createScreenCapture(rectangle);
 		this.setTitle(title);
+		this.setLocation(frameX, frameY);
 		this.setSize(frameWidth, frameHeight);
 		this.setUndecorated(true);
 		this.addMouseListener(this);
