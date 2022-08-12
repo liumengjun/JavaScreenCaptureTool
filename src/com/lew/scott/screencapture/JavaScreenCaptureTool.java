@@ -94,6 +94,13 @@ public class JavaScreenCaptureTool extends Frame implements MouseListener, Mouse
 	private static final int Exit_After_Copy_Code = 0x02;
 	private static final String CFG_FILE_NAME = "jsct.properties";
 
+	//禁用缩放
+	static {
+
+		System.setProperty("sun.java2d.uiScale", "1");
+
+	}
+
 	private JavaScreenCaptureTool() {
 		// 取得屏幕大小
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
